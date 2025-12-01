@@ -5,9 +5,6 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic'
-
 interface Task {
   id: string
   title: string
@@ -22,11 +19,16 @@ export default function Dashboard() {
   const router = useRouter()
 
   useEffect(() => {
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      return
+    }
     checkUser()
     fetchTasks()
   }, [])
 
   const checkUser = async () => {
+    if (!supabase) return
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       router.push('/login')
@@ -36,6 +38,7 @@ export default function Dashboard() {
   }
 
   const fetchTasks = async () => {
+    if (!supabase) return
     const { data, error } = await supabase
       .from('tasks')
       .select('*')
@@ -48,6 +51,7 @@ export default function Dashboard() {
   }
 
   const handleLogout = async () => {
+    if (!supabase) return
     await supabase.auth.signOut()
     router.push('/login')
   }
@@ -141,3 +145,5 @@ export default function Dashboard() {
     </div>
   )
 }
+
+Dashboard.displayName = 'Dashboard'
