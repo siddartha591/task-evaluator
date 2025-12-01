@@ -5,6 +5,9 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 interface Task {
   id: string
   title: string
@@ -49,6 +52,14 @@ export default function Dashboard() {
     router.push('/login')
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -79,11 +90,7 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="text-gray-500">Loading tasks...</div>
-          </div>
-        ) : tasks.length === 0 ? (
+        {tasks.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <div className="text-6xl mb-4">📝</div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">

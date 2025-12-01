@@ -5,6 +5,9 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+// Ensures fresh auth session check on Vercel (no caching issues)
+export const dynamic = 'force-dynamic'
+
 export default function NewTask() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -19,7 +22,7 @@ export default function NewTask() {
     setError('')
 
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (!user) {
       router.push('/login')
       return
@@ -59,9 +62,7 @@ export default function NewTask() {
 
       {/* Form */}
       <div className="container mx-auto px-4 py-8 max-w-3xl">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">
-          Submit New Task
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-8">Submit New Task</h1>
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
@@ -71,9 +72,7 @@ export default function NewTask() {
 
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Task Title
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Task Title</label>
             <input
               type="text"
               value={title}
@@ -85,23 +84,19 @@ export default function NewTask() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Task Description
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Task Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
               rows={4}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Describe what the task was about..."
+              placeholder="Describe what the task is about..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Your Code
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Your Code</label>
             <textarea
               value={code}
               onChange={(e) => setCode(e.target.value)}
@@ -120,6 +115,7 @@ export default function NewTask() {
             >
               {loading ? 'Submitting...' : 'Submit Task'}
             </button>
+
             <Link
               href="/dashboard"
               className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition text-center"

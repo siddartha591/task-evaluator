@@ -5,6 +5,9 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+// Ensures the page runs dynamically on Vercel
+export const dynamic = 'force-dynamic'
+
 export default function SignUp() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -17,10 +20,7 @@ export default function SignUp() {
     setLoading(true)
     setError('')
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
+    const { error } = await supabase.auth.signUp({ email, password })
 
     if (error) {
       setError(error.message)
@@ -34,9 +34,9 @@ export default function SignUp() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
         <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
-          Sign Up
+          Create Account
         </h1>
-        
+
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}

@@ -5,6 +5,9 @@ import { supabase } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 
+// Ensures live session fetch — prevents stale cached pages
+export const dynamic = 'force-dynamic'
+
 interface Task {
   id: string
   title: string
@@ -41,19 +44,13 @@ export default function TaskDetail() {
   const fetchTask = async (id: string) => {
     setLoading(true)
 
-    const { data: taskData, error: taskError } = await supabase
+    const { data: taskData } = await supabase
       .from('tasks')
       .select('*')
       .eq('id', id)
       .single()
 
-    if (taskError) {
-      console.error(taskError)
-      setLoading(false)
-      return
-    }
-
-    setTask(taskData)
+    setTask(taskData || null)
 
     const { data: evalData } = await supabase
       .from('evaluations')
@@ -65,16 +62,15 @@ export default function TaskDetail() {
     setLoading(false)
   }
 
-  // 🔥 REPLACED + FIXED handleEvaluate()
   const handleEvaluate = async () => {
     if (!task) return
-    
+
     setEvaluating(true)
     setError('')
 
     try {
-      // Get logged-in session
       const { data: { session } } = await supabase.auth.getSession()
+
       if (!session) {
         setError('Please login first.')
         router.push('/login')
@@ -95,6 +91,7 @@ export default function TaskDetail() {
       })
 
       const data = await response.json()
+
       if (data.success) fetchTask(task.id)
       else setError(data.error || 'Evaluation failed')
 
@@ -136,8 +133,11 @@ export default function TaskDetail() {
           {error && <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>}
 
           {!evaluation && (
-            <button onClick={handleEvaluate} disabled={evaluating}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 transition">
+            <button
+              onClick={handleEvaluate}
+              disabled={evaluating}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 transition"
+            >
               {evaluating ? '🤖 Evaluating...' : '🚀 Run AI Evaluation'}
             </button>
           )}
@@ -155,24 +155,23 @@ export default function TaskDetail() {
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-green-700 mb-2">Strengths</h3>
               <ul className="list-disc list-inside space-y-1">
-                {evaluation.strengths?.length ? evaluation.strengths.map((s, i) =>
-                  <li key={i} className="text-gray-700">{s}</li>
-                ) : <li>No strengths detected</li>}
+                {evaluation.strengths?.length
+                  ? evaluation.strengths.map((s, i) => <li key={i} className="text-gray-700">{s}</li>)
+                  : <li>No strengths detected</li>}
               </ul>
             </div>
 
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-orange-700 mb-2">Areas for Improvement</h3>
               <ul className="list-disc list-inside space-y-1">
-                {evaluation.improvements?.length ? evaluation.improvements.map((im, i) =>
-                  <li key={i} className="text-gray-700">{im}</li>
-                ) : <li>Try optimizing structure, readability and security</li>}
+                {evaluation.improvements?.length
+                  ? evaluation.improvements.map((im, i) => <li key={i} className="text-gray-700">{im}</li>)
+                  : <li>Improve readability, structure & edge-case handling</li>}
               </ul>
             </div>
 
             {!evaluation.is_unlocked ? (
-              <Link href={`/payment/${evaluation.id}`}
-                className="block w-full bg-purple-600 text-white py-3 text-center rounded-lg font-semibold hover:bg-purple-700">
+              <Link href={`/payment/${evaluation.id}`} className="block w-full bg-purple-600 text-white py-3 text-center rounded-lg font-semibold hover:bg-purple-700">
                 🔓 Unlock Full Report – ₹99
               </Link>
             ) : (
